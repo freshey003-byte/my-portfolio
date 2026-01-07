@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Digital Footprint</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@100;300;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.2/dist/gsap.min.js"></script>
+    
+    <style>
+        :root {
+            --red: #ff0022;
+            --purple: #8a2be2;
+            --bg: #050505;
+            --glass: rgba(255, 255, 255, 0.05);
+        }
+
+        /* พื้นหลังแบบไล่เฉดสีมืดๆ */
+        body { 
+            font-family: 'Kanit', sans-serif; 
+            background: var(--bg);
+            background-image: radial-gradient(circle at center, #1a0515 0%, #050505 100%);
+            color: white; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh;
+            margin: 0; 
+            overflow: hidden;
+            height: 100vh;
+        }
+
+    
+        
+        /* Dashboard หลัก */
+        .dashboard { 
+            width: 100%; max-width: 450px; 
+            background: var(--glass); 
+            backdrop-filter: blur(25px); 
+            border-radius: 40px; 
+            padding: 30px; 
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 40px 100px rgba(0,0,0,0.8);
+        }
+
+        /* Header & Select */
+        .header { text-align: center; margin-bottom: 25px; }
+        .header h2 { font-weight: 900; letter-spacing: 2px; margin-bottom: 15px; color: #fff; }
+        
+        select { 
+            width: 100%; padding: 15px; border-radius: 20px; 
+            border: 1px solid var(--purple); background: rgba(0,0,0,0.6); 
+            color: white; font-size: 1rem; cursor: pointer; outline: none;
+            transition: 0.4s;
+        }
+        select:hover { border-color: var(--red); box-shadow: 0 0 15px rgba(255,0,34,0.3); }
+
+        /* Main Display */
+        .main-weather { 
+            text-align: center; padding: 40px 20px; 
+            background: linear-gradient(135deg, rgba(138,43,226,0.15), rgba(255,0,34,0.15));
+            border-radius: 30px; margin-bottom: 25px; 
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .temp-now { font-size: 6.5rem; font-weight: 900; margin: 0; line-height: 1; color: #fff; }
+        .condition-icon { font-size: 5rem; margin-bottom: 10px; }
+        #descDisplay { font-size: 1.2rem; font-weight: 200; color: #ccc; }
+
+        /* Stats Grid */
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
+        .stat-card { 
+            background: rgba(255,255,255,0.03); padding: 18px; border-radius: 22px; 
+            text-align: center; border: 1px solid rgba(255,255,255,0.05); 
+            transition: 0.3s ease;
+        }
+        .stat-card:hover { background: rgba(255,255,255,0.08); transform: translateY(-5px); }
+        .stat-card span { font-size: 0.7rem; color: #888; text-transform: uppercase; letter-spacing: 1px; display: block; }
+        .stat-card b { font-size: 1.3rem; color: var(--purple); margin-top: 5px; display: block; }
+
+        /* Forecast Row */
+        .forecast-title { font-size: 0.9rem; color: var(--red); margin-bottom: 15px; font-weight: 700; letter-spacing: 1px; }
+        .forecast-row { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: none; }
+        .forecast-row::-webkit-scrollbar { display: none; }
+        
+        .forecast-item { 
+            background: rgba(255,255,255,0.03); padding: 15px; border-radius: 20px; 
+            min-width: 80px; text-align: center; flex-shrink: 0;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .forecast-item .day { font-size: 0.7rem; color: #888; }
+        .forecast-item .temp { font-weight: bold; font-size: 1.1rem; color: #fff; }
+
+        .loading { display: none; text-align: center; color: var(--red); font-weight: 300; letter-spacing: 2px; }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard">
+        <div class="header">
+            <h2>weather app</h2>
+            <select id="citySelect" onchange="getWeather()">
+                <option value="13.75,100.50">BANGKOK</option>
+                <option value="18.79,98.98">CHIANG MAI</option>
+                <option value="7.89,98.39">PHUKET</option>
+                <option value="16.43,102.82">KHON KAEN</option>
+                <option value="12.92,100.88">PATTAYA</option>
+            </select>
+        </div>
+
+        <div id="loading" class="loading">SYNCING SATELLITE...</div>
+
+        <div id="weatherContent">
+            <div class="main-weather">
+                <div id="mainIcon" class="condition-icon">☀️</div>
+                <p class="temp-now" id="tempDisplay">--°</p>
+                <p id="descDisplay">LOADING...</p>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card"><span>Humidity</span><b id="humDisplay">-- %</b></div>
+                <div class="stat-card"><span>Wind Speed</span><b id="windDisplay">-- km/h</b></div>
+                <div class="stat-card"><span>Rain Chance</span><b id="rainDisplay">-- %</b></div>
+                <div class="stat-card"><span>UV Index</span><b id="uvDisplay">--</b></div>
+            </div>
+
+            <div class="forecast-title">7-DAY FORECAST</div>
+            <div class="forecast-row" id="forecastContainer">
+                </div>
+        </div>
+    </div>
+
+    <script>
+        async function getWeather() {
+            const [lat, lon] = document.getElementById('citySelect').value.split(',');
+            const loading = document.getElementById('loading');
+            const content = document.getElementById('weatherContent');
+            
+            // อนิเมชั่นปิดก่อนโหลดใหม่
+            gsap.to(content, { opacity: 0, scale: 0.95, duration: 0.4 });
+            setTimeout(() => { loading.style.display = 'block'; }, 400);
+
+            try {
+                const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&daily=weathercode,temperature_2m_max,uv_index_max&hourly=relativehumidity_2m,precipitation_probability&timezone=auto`;
+                const response = await fetch(url);
+                const data = await response.json();
+                const cur = data.current_weather;
+
+                // อัปเดตข้อมูล
+                document.getElementById('tempDisplay').innerText = Math.round(cur.temperature) + "°";
+                document.getElementById('windDisplay').innerText = cur.windspeed + " km/h";
+                document.getElementById('humDisplay').innerText = data.hourly.relativehumidity_2m[0] + " %";
+                document.getElementById('rainDisplay').innerText = data.hourly.precipitation_probability[0] + " %";
+                document.getElementById('uvDisplay').innerText = data.daily.uv_index_max[0];
+                
+                const weatherInfo = getWeatherInfo(cur.weathercode);
+                document.getElementById('mainIcon').innerText = weatherInfo.icon;
+                document.getElementById('descDisplay').innerText = weatherInfo.text;
+
+                // พยากรณ์ 7 วัน
+                let forecastHTML = "";
+                for(let i=0; i<7; i++) {
+                    const dayInfo = getWeatherInfo(data.daily.weathercode[i]);
+                    const date = new Date(data.daily.time[i]);
+                    const dayName = date.toLocaleDateString('en-US', {weekday: 'short'}).toUpperCase();
+
+                    forecastHTML += `
+                        <div class="forecast-item">
+                            <div class="day">${dayName}</div>
+                            <div style="font-size:1.8rem; margin:8px 0;">${dayInfo.icon}</div>
+                            <div class="temp">${Math.round(data.daily.temperature_2m_max[i])}°</div>
+                        </div>
+                    `;
+                }
+                document.getElementById('forecastContainer').innerHTML = forecastHTML;
+
+                // อนิเมชั่นเปิดหลังโหลดเสร็จ
+                loading.style.display = 'none';
+                gsap.to(content, { opacity: 1, scale: 1, duration: 1, ease: "expo.out" });
+
+            } catch (error) {
+                console.error("Error fetching weather:", error);
+                document.getElementById('descDisplay').innerText = "ERROR CONNECTING";
+            }
+        }
+
+        function getWeatherInfo(code) {
+            if (code <= 1) return { icon: "☀️", text: "CLEAR SKY" };
+            if (code <= 3) return { icon: "☁️", text: "PARTLY CLOUDY" };
+            if (code <= 48) return { icon: "🌫️", text: "FOGGY" };
+            if (code <= 67) return { icon: "🌧️", text: "RAINY" };
+            if (code <= 77) return { icon: "❄️", text: "SNOWY" };
+            return { icon: "⛈️", text: "STORM" };
+        }
+
+        // เรียกใช้งานครั้งแรก
+        window.onload = getWeather;
+    </script>
+</body>
+</html>

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sakonnan | Cyber Calculator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@100;300;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.2/dist/gsap.min.js"></script>
+    <style>
+        :root {
+            --red: #ff0022;
+            --purple: #8a2be2;
+            --bg: #050505;
+            --glass: rgba(255, 255, 255, 0.05);
+            --num-bg: rgba(255, 255, 255, 0.03);
+        }
+
+        body { 
+            background: var(--bg); 
+            background-image: radial-gradient(circle at center, #1a0515 0%, #050505 100%);
+            display: flex; justify-content: center; align-items: center; 
+            min-height: 100vh; margin: 0; font-family: 'Kanit', sans-serif;
+            overflow: hidden;
+        }
+
+        
+        .back-btn:hover { background: var(--red); box-shadow: 0 0 20px var(--red); }
+
+        .calc-wrapper { 
+            width: 340px; 
+            background: var(--glass); 
+            backdrop-filter: blur(25px);
+            padding: 30px; 
+            border-radius: 40px; 
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 40px 100px rgba(0,0,0,0.8);
+            position: relative;
+        }
+
+        /* ส่วนประวัติ */
+        .history-list { 
+            color: var(--purple); 
+            text-align: right; 
+            font-size: 14px; 
+            min-height: 25px; 
+            margin-bottom: 5px; 
+            padding: 0 10px;
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+
+        /* หน้าจอหลัก */
+        .screen { 
+            color: #fff; 
+            font-size: 50px; 
+            font-weight: 700;
+            text-align: right; 
+            padding: 10px; 
+            margin-bottom: 25px; 
+            word-wrap: break-word; 
+            min-height: 80px; 
+            transition: 0.2s;
+            text-shadow: 0 0 15px rgba(255,255,255,0.3);
+        }
+
+        /* การจัดวางปุ่ม */
+        .btn-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
+
+        button { 
+            height: 65px; width: 100%; 
+            border-radius: 20px; 
+            border: 1px solid rgba(255,255,255,0.05); 
+            font-size: 20px; 
+            cursor: pointer; 
+            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            display: flex; align-items: center; justify-content: center; 
+            color: #fff;
+            background: var(--num-bg);
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(255,255,255,0.2);
+        }
+
+        /* ปุ่มตัวเลข */
+        .btn-n { font-weight: 300; }
+
+        /* ปุ่มเครื่องหมาย (Operator) */
+        .btn-o { 
+            background: rgba(255, 0, 34, 0.1); 
+            color: var(--red); 
+            font-size: 26px; 
+            border-color: rgba(255, 0, 34, 0.2);
+        }
+        .btn-o:hover { background: var(--red); color: white; box-shadow: 0 0 20px var(--red); }
+
+        /* ปุ่มฟังก์ชันพิเศษ (AC, Math) */
+        .btn-s { 
+            background: rgba(138, 43, 226, 0.1); 
+            color: var(--purple);
+            border-color: rgba(138, 43, 226, 0.2);
+        }
+        .btn-s:hover { background: var(--purple); color: white; box-shadow: 0 0 20px var(--purple); }
+
+        /* ปุ่ม 0 แบบยาว */
+        .btn-zero { grid-column: span 2; }
+
+        /* ปุ่มคำนวณ (=) */
+        .btn-equal {
+            background: linear-gradient(45deg, var(--purple), var(--red));
+            border: none;
+            font-weight: 900;
+        }
+        .btn-equal:hover { box-shadow: 0 0 30px var(--red); }
+
+    </style>
+</head>
+<body>
+
+<div class="calc-wrapper">
+    <div class="history-list" id="history"></div>
+    <div class="screen" id="display">0</div>
+
+    <div class="btn-grid">
+        <button onclick="clearAll()" class="btn-s">AC</button>
+        <button onclick="special('Math.pow(', '2')" class="btn-s">x²</button>
+        <button onclick="special('Math.sqrt(', '')" class="btn-s">√</button>
+        <button onclick="update('/')" class="btn-o">÷</button>
+
+        <button onclick="update('7')" class="btn-n">7</button>
+        <button onclick="update('8')" class="btn-n">8</button>
+        <button onclick="update('9')" class="btn-n">9</button>
+        <button onclick="update('*')" class="btn-o">×</button>
+
+        <button onclick="update('4')" class="btn-n">4</button>
+        <button onclick="update('5')" class="btn-n">5</button>
+        <button onclick="update('6')" class="btn-n">6</button>
+        <button onclick="update('-')" class="btn-o">−</button>
+
+        <button onclick="update('1')" class="btn-n">1</button>
+        <button onclick="update('2')" class="btn-n">2</button>
+        <button onclick="update('3')" class="btn-n">3</button>
+        <button onclick="update('+')" class="btn-o">+</button>
+
+        <button onclick="update('0')" class="btn-n btn-zero">0</button>
+        <button onclick="update('.')" class="btn-n">.</button>
+        <button onclick="solve()" class="btn-equal">=</button>
+    </div>
+</div>
+
+<script>
+    let exp = localStorage.getItem('sit_calc') || '';
+
+    function update(v) {
+        // อนิเมชั่นปุ่มกด
+        gsap.fromTo("#display", { opacity: 0.7 }, { opacity: 1, duration: 0.2 });
+        exp += v;
+        render();
+    }
+
+    function special(func, post) {
+        if (exp === "") return;
+        exp = func + exp + (post ? `,${post})` : ')');
+        solve();
+    }
+
+    function solve() {
+        try {
+            if (exp === "") return;
+            let res = eval(exp);
+            
+            document.getElementById('history').innerText = exp + " =";
+            
+            exp = Number.isInteger(res) ? res.toString() : res.toFixed(4).replace(/\.?0+$/, "");
+            render();
+            
+            // อนิเมชั่นเมื่อได้ผลลัพธ์
+            gsap.from("#display", { scale: 1.2, color: "#ff0022", duration: 0.4, ease: "back.out(2)" });
+            
+            localStorage.setItem('sit_calc', exp);
+        } catch (e) {
+            document.getElementById('display').innerText = "Error";
+            exp = "";
+        }
+    }
+
+    function clearAll() {
+        exp = "";
+        document.getElementById('history').innerText = "";
+        render();
+        localStorage.setItem('sit_calc', "");
+    }
+
+    function render() {
+        const d = document.getElementById('display');
+        d.style.fontSize = exp.length > 8 ? (exp.length > 12 ? '28px' : '38px') : '50px';
+        d.innerText = exp || "0";
+    }
+
+    render();
+</script>
+
+</body>
+</html>

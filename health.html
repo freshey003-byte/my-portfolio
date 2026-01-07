@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>health Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@100;300;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.2/dist/gsap.min.js"></script>
+    <style>
+        :root {
+            --red: #ff0022;
+            --purple: #8a2be2;
+            --bg: #050505;
+            --glass: rgba(255, 255, 255, 0.05);
+        }
+
+        body { 
+            font-family: 'Kanit', sans-serif; 
+            background: var(--bg);
+            background-image: radial-gradient(circle at center, #1a0515 0%, #050505 100%);
+            color: white; 
+            min-height: 100vh; 
+            margin: 0; 
+            padding: 60px 20px; /* เพิ่ม Padding บน-ล่าง ให้แอปไม่ติดขอบจอเกินไป */
+            display: flex; 
+            justify-content: center; 
+            align-items: center;
+        }
+
+        /* ขยายความกว้างสูงสุดให้แอปดูไม่อึดอัด */
+        .container { 
+            width: 100%; 
+            max-width: 1000px; 
+        }
+
+        .header { 
+            text-align: center; 
+            margin-bottom: 60px; /* เพิ่มระยะห่างระหว่างหัวข้อกับตัวแอป */
+        }
+        .header h1 { font-weight: 900; font-size: 3rem; letter-spacing: 4px; margin: 0; }
+        .header p { color: var(--purple); opacity: 0.8; font-weight: 300; font-size: 1.1rem; margin-top: 10px; }
+
+        /* ปรับ Gap ให้กว้างขึ้นเป็น 50px */
+        .grid-2 { 
+            display: grid; 
+            grid-template-columns: 1fr 1.2fr; 
+            gap: 50px; 
+            align-items: start; 
+        }
+
+        @media (max-width: 850px) { 
+            .grid-2 { grid-template-columns: 1fr; gap: 30px; } 
+            body { padding: 40px 20px; }
+        }
+
+        /* Card Style */
+        .card { 
+            background: var(--glass); 
+            backdrop-filter: blur(25px);
+            padding: 40px; /* เพิ่มพื้นที่ข้างใน Card */
+            border-radius: 40px; 
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+            min-height: 420px; /* ล็อคความสูงขั้นต่ำให้ทั้งสองฝั่งดูสมดุลกัน */
+        }
+
+        h2 { font-size: 1.4rem; font-weight: 700; margin-bottom: 30px; border-left: 5px solid var(--red); padding-left: 20px; }
+
+        /* Form Styling */
+        .form-group { margin-bottom: 25px; } /* เพิ่มระยะห่างระหว่างช่องกรอก */
+        label { display: block; font-size: 0.85rem; color: #aaa; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
+        
+        .grid-2-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+        input, select {
+            width: 100%; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.15);
+            padding: 15px; border-radius: 15px; color: white; font-family: 'Kanit'; outline: none; transition: 0.3s;
+            box-sizing: border-box; font-size: 1rem;
+        }
+        input:focus, select:focus { border-color: var(--purple); background: rgba(0,0,0,0.7); box-shadow: 0 0 20px rgba(138,43,226,0.3); }
+
+        button {
+            width: 100%; background: linear-gradient(45deg, var(--red), var(--purple));
+            color: white; border: none; padding: 18px; border-radius: 18px;
+            font-weight: 900; cursor: pointer; transition: 0.4s; margin-top: 15px;
+            font-size: 1.1rem; letter-spacing: 1px;
+        }
+        button:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(255,0,34,0.4); filter: brightness(1.2); }
+
+        /* Results Display */
+        .results-grid { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 25px; 
+            height: 100%;
+        }
+        .result-box {
+            background: rgba(255,255,255,0.02); 
+            padding: 30px; 
+            border-radius: 25px;
+            text-align: center; 
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: 0.3s;
+        }
+        .result-box:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.2); }
+
+        .result-value { font-size: 3.5rem; font-weight: 900; color: var(--red); line-height: 1; margin-bottom: 5px; }
+        .result-label { font-size: 0.9rem; color: #888; letter-spacing: 1px; }
+        .category-text { font-size: 1.5rem; color: var(--purple); margin-top: 10px; font-weight: 700; }
+
+        .hidden { display: none; opacity: 0; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <h1>HEALTH TRACKER</h1>
+            <p>ระบบวิเคราะห์มวลกายและพลังงานดิจิทัล</p>
+        </div>
+
+        <div class="grid-2">
+            <div class="card">
+                <h2>INPUT DATA</h2>
+                <div class="form-group">
+                    <div class="grid-2-col">
+                        <div>
+                            <label>ส่วนสูง (CM)</label>
+                            <input type="number" id="height" placeholder="170">
+                        </div>
+                        <div>
+                            <label>น้ำหนัก (KG)</label>
+                            <input type="number" id="weight" placeholder="70">
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="grid-2-col">
+                        <div>
+                            <label>อายุ (ปี)</label>
+                            <input type="number" id="age" placeholder="25">
+                        </div>
+                        <div>
+                            <label>เพศ</label>
+                            <select id="gender">
+                                <option value="male">ชาย</option>
+                                <option value="female">หญิง</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>ระดับกิจกรรมประจำวัน</label>
+                    <select id="activity">
+                        <option value="1.2">นั่งทำงานเป็นหลัก (Sedentary)</option>
+                        <option value="1.375">ออกกำลังเบาๆ (1-3 วัน/สัปดาห์)</option>
+                        <option value="1.55" selected>ปานกลาง (3-5 วัน/สัปดาห์)</option>
+                        <option value="1.725">ออกกำลังหนัก (6-7 วัน/สัปดาห์)</option>
+                        <option value="1.9">นักกีฬา / งานใช้แรงงานหนัก</option>
+                    </select>
+                </div>
+                <button onclick="calculateBMI()">START ANALYSIS</button>
+            </div>
+
+            <div id="results" class="hidden">
+                <div class="card">
+                    <h2>ANALYSIS REPORT</h2>
+                    <div class="results-grid">
+                        <div class="result-box">
+                            <div class="result-value" id="bmiValue">0</div>
+                            <div class="result-label">BODY MASS INDEX (BMI)</div>
+                            <div class="category-text" id="bmiCategory">-</div>
+                        </div>
+                        <div class="grid-2-col">
+                            <div class="result-box">
+                                <div class="result-value" id="bmrValue" style="font-size: 2rem;">0</div>
+                                <div class="result-label">BMR (CAL/DAY)</div>
+                            </div>
+                            <div class="result-box">
+                                <div class="result-value" id="tdeeValue" style="font-size: 2rem;">0</div>
+                                <div class="result-label">TDEE (CAL/DAY)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function calculateBMI() {
+            const h = document.getElementById('height').value / 100;
+            const w = document.getElementById('weight').value;
+            const age = document.getElementById('age').value;
+            const gender = document.getElementById('gender').value;
+            const activity = document.getElementById('activity').value;
+
+            if(!h || !w || !age) {
+                alert("กรุณากรอกข้อมูลร่างกายให้ครบถ้วน");
+                return;
+            }
+
+            const bmi = (w / (h * h)).toFixed(1);
+            document.getElementById('bmiValue').innerText = bmi;
+
+            let category = "";
+            if (bmi < 18.5) category = "น้ำหนักน้อย (Underweight)";
+            else if (bmi < 25) category = "น้ำหนักปกติ (Healthy)";
+            else if (bmi < 30) category = "เริ่มอ้วน (Overweight)";
+            else category = "สภาวะอ้วน (Obese)";
+            document.getElementById('bmiCategory').innerText = category;
+
+            let bmr = (10 * w) + (6.25 * (h * 100)) - (5 * age);
+            bmr = gender === 'male' ? bmr + 5 : bmr - 161;
+            document.getElementById('bmrValue').innerText = Math.round(bmr).toLocaleString();
+
+            const tdee = bmr * activity;
+            document.getElementById('tdeeValue').innerText = Math.round(tdee).toLocaleString();
+
+            const resDiv = document.getElementById('results');
+            resDiv.classList.remove('hidden');
+            gsap.fromTo(resDiv, { opacity: 0, x: 100 }, { opacity: 1, x: 0, duration: 1, ease: "power4.out" });
+        }
+    </script>
+</body>
+</html>

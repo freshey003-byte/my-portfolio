@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sakonnan | Digital Missions</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@100;300;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.2/dist/gsap.min.js"></script>
+    <style>
+        :root {
+            --red: #ff0022;
+            --purple: #8a2be2;
+            --bg: #050505;
+            --glass: rgba(255, 255, 255, 0.05);
+        }
+
+        body { 
+            font-family: 'Kanit', sans-serif; 
+            background: var(--bg);
+            background-image: radial-gradient(circle at center, #1a0515 0%, #050505 100%);
+            color: white; 
+            display: flex; justify-content: center; align-items: center; 
+            min-height: 100vh; margin: 0; padding: 20px;
+        }
+
+    
+
+        /* Container หลัก */
+        .app-container {
+            width: 100%; max-width: 450px;
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            padding: 40px; border-radius: 35px;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 40px 100px rgba(0,0,0,0.8);
+        }
+
+        h1 { font-weight: 900; font-size: 2.2rem; margin-bottom: 25px; letter-spacing: 2px; text-align: center; }
+
+        /* Input Zone */
+        .input-group { display: flex; gap: 10px; margin-bottom: 30px; }
+        
+        input {
+            flex: 1; background: rgba(0,0,0,0.4);
+            border: 1px solid var(--purple);
+            border-radius: 15px; padding: 15px; color: white;
+            font-family: 'Kanit', sans-serif; outline: none; transition: 0.3s;
+        }
+        input:focus { border-color: var(--red); box-shadow: 0 0 15px rgba(255,0,34,0.2); }
+
+        .add-btn {
+            background: var(--red); border: none; color: white;
+            padding: 0 25px; border-radius: 15px; cursor: pointer;
+            font-weight: bold; transition: 0.3s;
+        }
+        .add-btn:hover { transform: scale(1.05); box-shadow: 0 0 20px var(--red); }
+
+        /* List Zone */
+        ul { list-style: none; padding: 0; }
+
+        li {
+            background: rgba(255,255,255,0.03);
+            margin-bottom: 12px; padding: 15px 20px;
+            border-radius: 18px; border-left: 4px solid var(--purple);
+            display: flex; justify-content: space-between; align-items: center;
+            animation: slideIn 0.4s ease forwards;
+            transition: 0.3s;
+        }
+        li:hover { background: rgba(255,255,255,0.07); transform: translateX(5px); }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .delete-btn {
+            background: transparent; border: 1px solid rgba(255,255,255,0.2);
+            color: #888; padding: 5px 12px; border-radius: 10px;
+            cursor: pointer; font-size: 0.8rem; transition: 0.3s;
+        }
+        .delete-btn:hover { border-color: var(--red); color: var(--red); background: rgba(255,0,34,0.1); }
+
+    </style>
+</head>
+<body>
+
+
+    <div class="app-container">
+        <h1>MISSIONS</h1>
+        
+        <div class="input-group">
+            <input type="text" id="taskText" placeholder="ระบุภารกิจของคุณ...">
+            <button onclick="addT()" class="add-btn">เพิ่ม</button>
+        </div>
+
+        <ul id="taskL"></ul>
+    </div>
+
+    <script>
+        const input = document.getElementById('taskText');
+
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') addT();
+        });
+
+        let tasks = JSON.parse(localStorage.getItem('myTasks')) || [];
+        renderTasks();
+
+        function addT() {
+            if (input.value.trim() === "") return;
+
+            tasks.push(input.value);
+            input.value = "";
+            saveAndRender();
+            
+            // เพิ่มลูกเล่นเสียงหรือ Vibration ถ้าเปิดผ่านมือถือ
+            if (window.navigator.vibrate) window.navigator.vibrate(50);
+        }
+
+        function deleteT(index) {
+            // อนิเมชั่นก่อนลบ (ใช้ GSAP)
+            const item = document.querySelectorAll('li')[index];
+            gsap.to(item, { opacity: 0, x: 50, duration: 0.3, onComplete: () => {
+                tasks.splice(index, 1);
+                saveAndRender();
+            }});
+        }
+
+        function saveAndRender() {
+            localStorage.setItem('myTasks', JSON.stringify(tasks));
+            renderTasks();
+        }
+
+        function renderTasks() {
+            const list = document.getElementById('taskL');
+            list.innerHTML = "";
+
+            tasks.forEach((task, index) => {
+                list.innerHTML += `
+                    <li>
+                        <span>${task}</span>
+                        <button class="delete-btn" onclick="deleteT(${index})">ลบภารกิจ</button>
+                    </li>`;
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sakonnan | Digital Footprint</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@100;300;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --red: #ff0022;
+            --purple: #8a2be2;
+            --bg: #050505;
+            --glass: rgba(255, 255, 255, 0.03);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; cursor: none; }
+
+        body {
+            font-family: 'Kanit', sans-serif;
+            background-color: var(--bg);
+            color: white;
+            overflow-x: hidden;
+        }
+
+        /* Noise Texture & Cursor */
+        body::before {
+            content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: url(https://grainy-gradients.vercel.app/noise.svg);
+            opacity: 0.05; pointer-events: none; z-index: 9999;
+        }
+
+        #cursor {
+            position: fixed; width: 20px; height: 20px; background: white;
+            border-radius: 50%; pointer-events: none; z-index: 10000;
+            mix-blend-mode: difference; transition: transform 0.1s;
+        }
+
+        /* Ripple Effect */
+        .ripple {
+            position: absolute; background: rgba(255, 255, 255, 0.4);
+            transform: translate(-50%, -50%); pointer-events: none;
+            border-radius: 50%; animation: ripple-animation 0.6s linear; z-index: 999;
+        }
+        @keyframes ripple-animation {
+            from { width: 0; height: 0; opacity: 0.5; }
+            to { width: 500px; height: 500px; opacity: 0; }
+        }
+
+        /* --- NavBar --- */
+        .navBar {
+            position: fixed; top: 0; width: 100%; height: 80px;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 50px; z-index: 1000; backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .navBar b { font-size: 1.5rem; letter-spacing: 5px; color: var(--red); }
+        .navBar ul { display: flex; list-style: none; gap: 40px; }
+        .navBar a { text-decoration: none; color: rgba(255,255,255,0.6); font-weight: 300; transition: 0.4s; }
+        .navBar a:hover { color: var(--red); letter-spacing: 2px; }
+
+        /* --- Sections --- */
+        section { min-height: 100vh; display: flex; align-items: center; justify-content: center; position: relative; }
+
+        /* Hero */
+        .hero { flex-direction: column; }
+        .hero h1 {
+            font-size: 10vw; font-weight: 900; line-height: 0.8;
+            background: linear-gradient(to bottom, #fff 40%, var(--red) 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-align: center;
+        }
+        .hero-sub { font-size: 1.2rem; letter-spacing: 10px; margin-top: 20px; color: var(--purple); font-weight: 100; }
+
+        /* About & Photo */
+        .about-section {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 80px;
+            max-width: 1400px; margin: 0 auto; padding: 0 10%;
+        }
+        .about-image-container {
+            position: relative; width: 100%; max-width: 400px; height: 500px;
+            justify-self: center; overflow: visible;
+        }
+        .profile-img {
+            width: 100%; height: 100%; object-fit: cover; border-radius: 20px;
+            filter: grayscale(100%); transition: 0.5s; z-index: 2; position: relative;
+        }
+        .image-border {
+            position: absolute; top: 20px; left: 20px; right: -20px; bottom: -20px;
+            border: 2px solid var(--purple); border-radius: 20px; z-index: 1; transition: 0.5s;
+        }
+        .about-image-container:hover .profile-img { filter: grayscale(0%); transform: translate(-10px, -10px); }
+        .about-image-container:hover .image-border { transform: translate(10px, 10px); border-color: var(--red); box-shadow: 0 0 30px var(--red); }
+
+        .about-info { text-align: left; }
+        .about-title { font-size: 4rem; font-weight: 900; line-height: 1; margin-bottom: 20px; }
+        .about-content { font-size: 1.2rem; font-weight: 200; line-height: 1.8; color: #aaa; border-left: 2px solid var(--red); padding-left: 30px; }
+
+        /* Projects Grid */
+        .work-container { flex-direction: column; padding: 100px 50px; justify-content: flex-start; }
+        .projects-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 40px; width: 100%; max-width: 1200px; margin-top: 50px;
+        }
+        .project-card {
+            position: relative; height: 450px; border-radius: 30px; overflow: hidden;
+            background: #111; border: 1px solid rgba(255,255,255,0.05); text-decoration: none; color: white;
+        }
+        .project-card img { width: 100%; height: 100%; object-fit: cover; opacity: 0.4; transition: 0.8s ease; }
+        .project-card:hover img { transform: scale(1.1); opacity: 0.7; }
+        .card-overlay { position: absolute; bottom: 0; left: 0; width: 100%; padding: 40px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); }
+        .card-tag { display: inline-block; padding: 5px 15px; border: 1px solid var(--purple); border-radius: 20px; font-size: 0.7rem; color: var(--purple); margin-bottom: 10px; }
+
+        /* Glow Elements */
+        .glow { position: absolute; width: 40vw; height: 40vw; background: radial-gradient(circle, rgba(255, 0, 34, 0.05) 0%, transparent 70%); z-index: -1; pointer-events: none; }
+    </style>
+</head>
+<body>
+
+    <div id="cursor"></div>
+    <div class="glow" style="top: 10%; right: -10%;"></div>
+    <div class="glow" style="bottom: 10%; left: -10%;"></div>
+
+    <nav class="navBar">
+        <b>SAKONNAN.</b>
+        <ul>
+            <li><a href="#home">HOME</a></li>
+            <li><a href="#about">ABOUT</a></li>
+            <li><a href="#projects">PROJECTS</a></li>
+        </ul>
+    </nav>
+
+    <section class="hero" id="home">
+        <h1 id="hero-title">DIGITAL<br>FOOTPRINT</h1>
+        <p class="hero-sub">EST. 2006 | FUTURE IT KMUTT</p>
+    </section>
+
+    <section id="about">
+        <div class="about-section">
+            <div class="about-image-container">
+                <div class="image-border"></div>
+                <img src="IMG20240913114001.jpg" alt="Sakonnan" class="profile-img">
+            </div>
+            <div class="about-info">
+                <h2 class="about-title">WHO IS<br><span style="color:var(--red)">SAKONNAN?</span></h2>
+                <div class="about-content">
+                    <p>
+                        ผมชื่อ <b>ศกลนันท์ พฤกษาจรีเวโรจน์</b> (27/07/2549) <br>
+                        ผมมีส่วนสูง <b>177 ซม.</b> หนัก <b>65 กก.</b> <br><br>
+                        ผมจบมาจากโรงเรียนทวีธาภิเศกสายการเรียน วิทย์-คณิต-คอม  ผมมีความชื่นชมในการทำอะไรสักอย่างที่เกียวกับคอมๆ เลยทำให้ผมอยากเขียนโปรแกรม <br>
+                        เพราะสำหรับผมการเขียนโปรแกรมมันคือการทิ้ง <b style="color:var(--red)">Digital Footprint</b> ไว้กับอินเทอร์เน็ต <br>
+                        ถึงแม้ตอนนี้ผมยังไม่เก่งนักแต่ผมก็ยังอยากเขียนโปรแกรมครับ!!และผมจะไม่มีทางยอมแพ้กับบางมด หรือ มจธ เด็ดขาด และ เมื่อมจธให่โอกาสผม ผมจะไม่มีวันทำให้มหาลัยนี้ผิดหวังอย่างแน่นอนครับ! 
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="work-container" id="projects">
+        <h2 style="font-size: 3rem; font-weight: 900; align-self: flex-start; margin-left: 5%;">SELECTED WORKS</h2>
+        <div class="projects-grid">
+
+            <a href="เว็บกลอง.html" class="project-card">
+                <img src="drum beat.png" alt="Work">
+                <div class="card-overlay">
+                    <span class="card-tag">WEB DEVELOPMENT</span>
+                    <h3>Project Name 01</h3>
+                    <p>สร้าง Digital Footprint ชิ้นแรกของคุณที่นี่</p>
+                </div>
+            </a>
+
+            <a href="calculator.html" class="project-card">
+                <img src="calcu.png" alt="Work">
+                <div class="card-overlay">
+                    <span class="card-tag">UI / UX DESIGN</span>
+                    <h3>Project Name 02</h3>
+                </div>
+            </a>
+
+            <a href="weather.html" class="project-card">
+                <img src="weather.png" alt="Work">
+                <div class="card-overlay">
+                    <span class="card-tag">WEB DEVELOPMENT</span>
+                    <h3>Project Name 01</h3>
+                </div>
+            </a>
+
+            <a href="health.html" class="project-card">
+                <img src="health.png" alt="Work">
+                <div class="card-overlay">
+                    <span class="card-tag">WEB DEVELOPMENT</span>
+                    <h3>Project Name 01</h3>
+                </div>
+            </a>
+
+            <a href="wealth.html" class="project-card">
+                <img src="wealth.png" alt="Work">
+                <div class="card-overlay">
+                    <span class="card-tag">WEB DEVELOPMENT</span>
+                    <h3>Project Name 01</h3>
+                </div>
+            </a>
+
+            <a href="toDo.html" class="project-card">
+                <img src="to do list.png" alt="Work">
+                <div class="card-overlay">
+                    <span class="card-tag">WEB DEVELOPMENT</span>
+                    <h3>Project Name 01</h3>
+                    <p>สร้าง Digital Footprint ชิ้นแรกของคุณที่นี่</p>
+                </div>
+            </a>
+
+
+
+        </div>
+    </section>
+
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.2/dist/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.2/dist/ScrollTrigger.min.js"></script>
+
+    <script>
+        gsap.registerPlugin(ScrollTrigger);
+
+        // 1. Custom Cursor
+        const cursor = document.getElementById('cursor');
+        document.addEventListener('mousemove', (e) => {
+            gsap.to(cursor, { x: e.clientX, y: e.clientY, duration: 0.1 });
+        });
+
+        // 2. Ripple Effect Function
+        function createRipple(event) {
+            const button = event.currentTarget;
+            const ripple = document.createElement("span");
+            const rect = button.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+            ripple.classList.add("ripple");
+            ripple.style.left = `${x}px`;
+            ripple.style.top = `${y}px`;
+            button.appendChild(ripple);
+            setTimeout(() => ripple.remove(), 600);
+        }
+
+        document.querySelectorAll('.project-card, .navBar a, .about-image-container').forEach(btn => {
+            btn.addEventListener('click', createRipple);
+        });
+
+        // 3. GSAP Animations
+        gsap.from("#hero-title", { opacity: 0, y: 100, scale: 0.8, duration: 2, ease: "expo.out" });
+
+        gsap.from(".about-image-container", {
+            scrollTrigger: { trigger: "#about", start: "top 70%" },
+            x: -100, opacity: 0, duration: 1.5
+        });
+
+        gsap.from(".about-info", {
+            scrollTrigger: { trigger: "#about", start: "top 70%" },
+            x: 100, opacity: 0, duration: 1.5
+        });
+
+        gsap.from(".project-card", {
+            scrollTrigger: { trigger: ".projects-grid", start: "top 80%" },
+            y: 100, opacity: 0, stagger: 0.3, duration: 1.2, ease: "power4.out"
+        });
+
+        // 4. Parallax Hero
+        document.addEventListener('mousemove', (e) => {
+            const moveX = (e.clientX - window.innerWidth / 2) / 50;
+            const moveY = (e.clientY - window.innerHeight / 2) / 50;
+            gsap.to("#hero-title", { x: moveX, y: moveY, duration: 1 });
+        });
+    </script>
+</body>
+</html>

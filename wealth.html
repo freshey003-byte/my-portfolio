@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sakonnan | Wealth Visualizer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@100;300;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.2/dist/gsap.min.js"></script>
+    <style>
+        :root {
+            --red: #ff0022;
+            --purple: #8a2be2;
+            --bg: #050505;
+            --glass: rgba(255, 255, 255, 0.05);
+        }
+
+        body { 
+            font-family: 'Kanit', sans-serif; 
+            background: var(--bg);
+            background-image: radial-gradient(circle at center, #1a0515 0%, #050505 100%);
+            color: white; min-height: 100vh; margin: 0; padding: 40px 20px;
+            display: flex; justify-content: center; align-items: center;
+        }
+
+        .container { 
+            background: var(--glass); backdrop-filter: blur(25px);
+            padding: 40px; border-radius: 35px; 
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 40px 100px rgba(0,0,0,0.8);
+            width: 100%; max-width: 700px; 
+        }
+
+        h2 { font-weight: 900; text-align: center; letter-spacing: 2px; margin-bottom: 30px; }
+
+        .input-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; }
+        @media (max-width: 600px) { .input-grid { grid-template-columns: 1fr; } }
+
+        label { display: block; font-size: 0.75rem; color: #888; margin-bottom: 5px; text-transform: uppercase; }
+
+        input { 
+            width: 100%; padding: 12px; background: rgba(0,0,0,0.4); 
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; 
+            color: white; font-family: 'Kanit'; outline: none; box-sizing: border-box;
+        }
+        input:focus { border-color: var(--purple); box-shadow: 0 0 15px rgba(138,43,226,0.2); }
+
+        button { 
+            width: 100%; background: linear-gradient(45deg, var(--red), var(--purple)); 
+            color: white; border: none; padding: 15px; border-radius: 15px; 
+            cursor: pointer; font-weight: 900; margin-top: 10px; transition: 0.3s;
+        }
+        button:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(255,0,34,0.3); }
+
+        .chart-container { position: relative; height: 350px; margin-top: 40px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>WEALTH VISUALIZER</h2>
+    <div class="input-grid">
+        <div>
+            <label>เงินต้น (บาท)</label>
+            <input type="number" id="principal" value="10000">
+        </div>
+        <div>
+            <label>ดอกเบี้ยต่อปี (%)</label>
+            <input type="number" id="rate" value="5">
+        </div>
+        <div>
+            <label>จำนวนปี (1-20)</label>
+            <input type="number" id="years" value="10">
+        </div>
+    </div>
+    <button onclick="calculateAndChart()">GENERATE DATA CHART</button>
+
+    <div class="chart-container">
+        <canvas id="myChart"></canvas>
+    </div>
+</div>
+
+<script>
+    let myChart;
+
+    function calculateAndChart() {
+        const principal = parseFloat(document.getElementById('principal').value);
+        const rate = parseFloat(document.getElementById('rate').value) / 100;
+        const years = parseInt(document.getElementById('years').value);
+
+        let labels = [];
+        let data = [];
+
+        for (let i = 0; i <= years; i++) {
+            labels.push(`ปีที่ ${i}`);
+            // สูตรดอกเบี้ยทบต้น: P(1+r)^t
+            let amount = principal * Math.pow((1 + rate), i);
+            data.push(amount.toFixed(2));
+        }
+
+        const ctx = document.getElementById('myChart').getContext('2d');
+        
+        // ถ้ามีกราฟเก่าอยู่ให้ทำลายทิ้งก่อนสร้างใหม่
+        if (myChart) {
+            myChart.destroy();
+        }
+
+        // สร้าง Gradient ให้กับเส้นกราฟ
+        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, 'rgba(255, 0, 34, 0.5)');
+        gradient.addColorStop(1, 'rgba(138, 43, 226, 0.0)');
+
+        myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'การเติบโตของเงินทุน',
+                    data: data,
+                    borderColor: '#ff0022',
+                    borderWidth: 3,
+                    pointBackgroundColor: '#8a2be2',
+                    pointBorderColor: '#fff',
+                    pointHoverRadius: 8,
+                    fill: true,
+                    backgroundColor: gradient,
+                    tension: 0.4 // ความโค้งของเส้น
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        grid: { color: 'rgba(255,255,255,0.05)' },
+                        ticks: { color: '#888', font: { family: 'Kanit' } }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#888', font: { family: 'Kanit' } }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: { color: '#fff', font: { family: 'Kanit', size: 14 } }
+                    }
+                }
+            }
+        });
+
+        // อนิเมชั่นตอนปรากฏ
+        gsap.from(".chart-container", { opacity: 0, y: 20, duration: 1 });
+    }
+
+    // รันครั้งแรกตอนโหลดหน้าเว็บ
+    window.onload = calculateAndChart;
+</script>
+
+</body>
+</html>

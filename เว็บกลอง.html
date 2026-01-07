@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sakonnan | Cyber Drum Machine</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@100;300;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.2/dist/gsap.min.js"></script>
+    <style>
+        :root {
+            --red: #ff0022;
+            --purple: #8a2be2;
+            --bg: #050505;
+            --glass: rgba(255, 255, 255, 0.05);
+            --neon-green: #00ff9d; /* สีจอ Display */
+        }
+
+        body {
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; margin: 0;
+            background: var(--bg);
+            background-image: radial-gradient(circle at center, #1a0515 0%, #050505 100%);
+            font-family: 'Kanit', sans-serif;
+            overflow: hidden;
+        }
+
+
+        #drum-machine {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            padding: 40px; border-radius: 35px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8);
+            text-align: center; width: 100%; max-width: 400px;
+        }
+
+        h1 {
+            color: #fff; font-weight: 900; letter-spacing: 4px;
+            margin-bottom: 25px; font-size: 1.8rem;
+        }
+
+        /* หน้าจอแสดงผลแบบ Retro Cyber */
+        #display {
+            background: rgba(0, 0, 0, 0.6);
+            color: var(--neon-green);
+            padding: 20px; margin-bottom: 30px;
+            font-size: 1.2rem; border-radius: 15px;
+            min-height: 25px; font-weight: bold;
+            border: 1px solid var(--neon-green);
+            box-shadow: inset 0 0 15px rgba(0, 255, 157, 0.2), 0 0 10px rgba(0, 255, 157, 0.1);
+            letter-spacing: 2px; text-transform: uppercase;
+        }
+
+        #pad-bank {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;
+        }
+
+        .drum-pad {
+            aspect-ratio: 1; border-radius: 15px; border: 1px solid rgba(255,255,255,0.05);
+            font-size: 1.5rem; font-weight: 900; cursor: pointer;
+            color: rgba(255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.02);
+            transition: all 0.1s ease;
+            display: flex; align-items: center; justify-content: center;
+            position: relative; overflow: hidden;
+        }
+
+        /* เอฟเฟกต์สีตอนกด (Active) แยกตามประเภทเสียง */
+        .drum-pad.active {
+            color: #fff;
+            transform: scale(0.95);
+        }
+
+        /* แบ่งกลุ่มสีของปุ่ม */
+        .drum-pad:nth-child(3n+1).active { background: var(--red); box-shadow: 0 0 30px var(--red); }
+        .drum-pad:nth-child(3n+2).active { background: var(--purple); box-shadow: 0 0 30px var(--purple); }
+        .drum-pad:nth-child(3n+3).active { background: #4c6ef5; box-shadow: 0 0 30px #4c6ef5; }
+
+        .drum-pad:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+        }
+
+        .clip { display: none; }
+    </style>
+</head>
+<body>
+
+    <div id="drum-machine">
+        <h1>DRUM BEAT</h1>
+        <div id="display">READY TO PLAY</div>
+        <div id="pad-bank">
+            <button class="drum-pad" id="Heater-1">Q
+                <audio class="clip" id="Q" src="https://cdn.freecodecamp.org/curriculum/drum/Heater-1.mp3"></audio>
+            </button>
+            <button class="drum-pad" id="Heater-2">W
+                <audio class="clip" id="W" src="https://cdn.freecodecamp.org/curriculum/drum/Heater-2.mp3"></audio>
+            </button>
+            <button class="drum-pad" id="Heater-3">E
+                <audio class="clip" id="E" src="https://cdn.freecodecamp.org/curriculum/drum/Heater-3.mp3"></audio>
+            </button>
+            <button class="drum-pad" id="Heater-4">A
+                <audio class="clip" id="A" src="https://cdn.freecodecamp.org/curriculum/drum/Heater-4_1.mp3"></audio>
+            </button>
+            <button class="drum-pad" id="Clap">S
+                <audio class="clip" id="S" src="https://cdn.freecodecamp.org/curriculum/drum/Heater-6.mp3"></audio>
+            </button>
+            <button class="drum-pad" id="Open-HH">D
+                <audio class="clip" id="D" src="https://cdn.freecodecamp.org/curriculum/drum/Dsc_Oh.mp3"></audio>
+            </button>
+            <button class="drum-pad" id="Kick-n-Hat">Z
+                <audio class="clip" id="Z" src="https://cdn.freecodecamp.org/curriculum/drum/Kick_n_Hat.mp3"></audio>
+            </button>
+            <button class="drum-pad" id="Kick">X
+                <audio class="clip" id="X" src="https://cdn.freecodecamp.org/curriculum/drum/RP4_KICK_1.mp3"></audio>
+            </button>
+            <button class="drum-pad" id="Closed-HH">C
+                <audio class="clip" id="C" src="https://cdn.freecodecamp.org/curriculum/drum/Cev_H2.mp3"></audio>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const padLabels = {
+            'Q': 'Heater 1', 'W': 'Heater 2', 'E': 'Heater 3',
+            'A': 'Heater 4', 'S': 'Clap', 'D': 'Open-HH',
+            'Z': 'Kick-n\'-Hat', 'X': 'Kick', 'C': 'Closed-HH'
+        };
+
+        function triggerPad(key) {
+            const audio = document.getElementById(key);
+            if (!audio) return;
+
+            const padButton = audio.parentElement;
+            
+            // เล่นเสียง
+            audio.currentTime = 0;
+            audio.play();
+            
+            // อัปเดตจอ Display ด้วย GSAP อนิเมชั่น
+            const display = document.getElementById('display');
+            display.textContent = padLabels[key];
+            gsap.fromTo(display, { opacity: 0.5, y: -2 }, { opacity: 1, y: 0, duration: 0.2 });
+            
+            // Visual feedback
+            padButton.classList.add('active');
+            setTimeout(() => padButton.classList.remove('active'), 150);
+        }
+
+        // คลิกปุ่ม
+        document.querySelectorAll('.drum-pad').forEach(pad => {
+            pad.addEventListener('click', () => {
+                const key = pad.textContent.trim();
+                triggerPad(key);
+            });
+        });
+
+        // กดคีย์บอร์ด
+        document.addEventListener('keydown', (e) => {
+            const key = e.key.toUpperCase();
+            if (padLabels[key]) {
+                triggerPad(key);
+            }
+        });
+    </script>
+</body>
+</html>
